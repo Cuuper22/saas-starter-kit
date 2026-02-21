@@ -1,0 +1,19 @@
+{
+  "name": "saas-starter-kit",
+  "version": "1.0.0",
+  "description": "Production-ready SaaS boilerplate — Stripe, auth, email, dashboard",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "NODE_ENV=production node src/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0"
+  },
+  "keywords": ["saas", "starter-kit", "boilerplate", "stripe", "express"],
+  "author": "Ben Cooper",
+  "license": "MIT"
+}

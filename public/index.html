@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Starter Kit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#e5e5e5}
+.hero{text-align:center;padding:80px 20px 40px;max-width:600px;margin:0 auto}
+.hero h1{font-size:48px;font-weight:800;margin-bottom:16px}
+.hero p{font-size:18px;color:#a3a3a3;margin-bottom:32px}
+.btn{display:inline-block;padding:14px 28px;background:#06b6d4;color:#0a0a0a;text-decoration:none;border-radius:8px;font-weight:700;margin:4px}
+.btn-outline{background:transparent;border:2px solid #06b6d4;color:#06b6d4}
+.features{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:900px;margin:40px auto;padding:0 20px}
+.feature{background:#141414;border:1px solid #262626;border-radius:12px;padding:24px}
+.feature h3{margin-bottom:8px;color:#06b6d4}
+.feature p{color:#a3a3a3;font-size:14px;line-height:1.6}
+.pricing{text-align:center;padding:40px 20px}
+.pricing h2{font-size:32px;margin-bottom:8px}
+.price{font-size:48px;font-weight:800;color:#06b6d4}
+footer{text-align:center;padding:40px;color:#525252;font-size:13px}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>Ship Your SaaS<br>In Hours</h1>
+  <p>Production-ready Node.js boilerplate with Stripe, auth, email, and a dashboard. Stop building infrastructure, start building features.</p>
+  <a href="/auth/signup" class="btn">Start Free</a>
+  <a href="/pricing.html" class="btn btn-outline">See Pricing</a>
+</div>
+<div class="features">
+  <div class="feature"><h3>Stripe Payments</h3><p>Subscriptions, one-time purchases, webhooks, and customer portal — all configured.</p></div>
+  <div class="feature"><h3>Authentication</h3><p>Secure session-based auth with bcrypt password hashing and API key support.</p></div>
+  <div class="feature"><h3>Email System</h3><p>Transactional emails via Brevo or SendGrid. Welcome, reset, invoice templates ready.</p></div>
+  <div class="feature"><h3>Dashboard</h3><p>Usage stats, API key management, billing history. Clean, responsive UI.</p></div>
+  <div class="feature"><h3>Rate Limiting</h3><p>Per-user API rate limiting with configurable windows and limits.</p></div>
+  <div class="feature"><h3>One-Click Deploy</h3><p>Docker + Cloudflare tunnel config included. PM2 for process management.</p></div>
+</div>
+<div class="pricing">
+  <h2>One-Time Purchase</h2>
+  <div class="price">$49</div>
+  <p style="color:#a3a3a3;margin:8px 0 24px">Full source code. No subscriptions. No lock-in.</p>
+  <a href="https://buy.stripe.com/6oU5kD4U7amuggC05s7Zu0a" class="btn">Get the Kit — $49</a>
+</div>
+<footer>Built by a solo dev who ships fast. MIT Licensed.</footer>
+</body>
+</html>
