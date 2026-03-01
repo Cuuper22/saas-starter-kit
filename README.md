@@ -1,3 +1,13 @@
+## Why
+
+Every SaaS boilerplate I found required Postgres, Redis, and 47 environment variables before you could run `npm start`. That's not a starter kit. That's a deployment exercise.
+
+This one needs one env var (`SESSION_SECRET`) and works immediately. SQLite with WAL mode handles the database — no container, no connection string, no migrations server. Stripe is optional: the app runs without it, checkout sessions appear when you add the key. Email is fire-and-forget: the welcome email sends in the background, and if SMTP isn't configured, the signup still works.
+
+The auth layer does both session cookies (for browser users) and API keys (for programmatic access) through a single middleware. Bcrypt at cost 12 for passwords, `crypto.randomBytes` for API keys and reset tokens, anti-enumeration on the forgot-password endpoint. Helmet headers, CSRF protection, rate limiting at 60 requests per minute.
+
+The point of a starter kit is to remove decisions, not add them. Auth, billing, email, dashboard — these four things are the same in every SaaS. They should be solved on day zero so you can spend day one on the thing that actually makes your product different.
+
 # SaaS Starter Kit
 
 Node.js SaaS boilerplate with Stripe subscriptions, session auth, email, and a dashboard. SQLite backend — no external DB needed.
