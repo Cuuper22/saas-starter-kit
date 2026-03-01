@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log In — SaaS Starter Kit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#e5e5e5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.container{max-width:420px;width:100%}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:32px}
+h1{font-size:28px;font-weight:800;margin-bottom:8px;text-align:center}
+.subtitle{text-align:center;color:#a3a3a3;font-size:14px;margin-bottom:24px}
+.subtitle a{color:#06b6d4;text-decoration:none}
+.subtitle a:hover{text-decoration:underline}
+.form-group{margin-bottom:16px}
+label{display:block;margin-bottom:6px;font-size:14px;font-weight:600}
+input{width:100%;padding:12px;background:#1a1a1a;border:1px solid #262626;border-radius:6px;color:#e5e5e5;font-size:14px}
+input:focus{outline:none;border-color:#06b6d4}
+.btn{width:100%;padding:14px;background:#06b6d4;color:#0a0a0a;border:none;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+.btn:hover{background:#0891b2}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.alert{padding:12px;border-radius:6px;margin-bottom:16px;font-size:14px}
+.alert-error{background:#7f1d1d;border:1px solid #991b1b;color:#fca5a5}
+.alert-success{background:#14532d;border:1px solid #166534;color:#86efac}
+.forgot-password{text-align:center;margin-top:16px;font-size:13px}
+.forgot-password a{color:#06b6d4;text-decoration:none}
+.forgot-password a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Don't have an account? <a href="/signup.html">Sign up</a></p>
+
+    <div id="alert" style="display:none"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com" autofocus>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">Log In</button>
+    </form>
+
+    <p class="forgot-password">
+      <a href="/forgot-password.html">Forgot your password?</a>
+    </p>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('loginForm');
+const alertBox = document.getElementById('alert');
+const submitBtn = document.getElementById('submitBtn');
+let csrfToken = null;
+
+// Fetch CSRF token on page load
+(async () => {
+  try {
+    const res = await fetch('/csrf-token');
+    const data = await res.json();
+    csrfToken = data.csrfToken;
+  } catch (err) {
+    console.error('Failed to fetch CSRF token:', err);
+  }
+})();
+
+function showAlert(message, isError = true) {
+  alertBox.textContent = message;
+  alertBox.className = isError ? 'alert alert-error' : 'alert alert-success';
+  alertBox.style.display = 'block';
+}
+
+function hideAlert() {
+  alertBox.style.display = 'none';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAlert();
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if (!email || !password) {
+    return showAlert('Email and password are required');
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Logging in...';
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['CSRF-Token'] = csrfToken;
+
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+
+    showAlert('Login successful! Redirecting...', false);
+
+    setTimeout(() => {
+      window.location.href = '/dashboard';
+    }, 1000);
+
+  } catch (err) {
+    showAlert(err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log In';
+  }
+});
+</script>
+</body>
+</html>

@@ -5,9 +5,10 @@ let transporter;
 function setupEmail() {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
     console.log('⚠️  SMTP credentials not set — emails disabled');
+    transporter = null; // Explicitly disable
     return;
   }
-  
+
   transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,

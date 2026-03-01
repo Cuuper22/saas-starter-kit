@@ -14,7 +14,7 @@
     "express": "^4.21.0",
     "express-session": "^1.18.0",
     "stripe": "^17.6.0",
-    "nodemailer": "^6.9.16",
+    "nodemailer": "^8.0.1",
     "helmet": "^8.0.0"
   },
   "devDependencies": {
@@ -26,6 +26,7 @@
   "license": "MIT",
   "jest": {
     "testEnvironment": "node",
+    "setupFiles": ["<rootDir>/tests/setup.js"],
     "coveragePathIgnorePatterns": ["/node_modules/"],
     "testMatch": ["**/tests/**/*.test.js"]
   }

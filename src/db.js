@@ -16,9 +16,11 @@ function initDB() {
       stripe_customer_id TEXT,
       plan TEXT DEFAULT 'free',
       api_key TEXT UNIQUE,
+      reset_token TEXT,
+      reset_token_expires DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
-    
+
     CREATE TABLE IF NOT EXISTS usage (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER REFERENCES users(id),

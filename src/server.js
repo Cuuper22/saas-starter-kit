@@ -7,6 +7,7 @@ const { setupStripe, createCheckoutSession, handleWebhook, getSubscriptionStatus
 const { setupEmail, sendWelcomeEmail } = require('./email');
 const { authRouter, requireAuth } = require('./auth');
 const { rateLimiter } = require('./middleware/rateLimit');
+const { csrfProtection } = require('./middleware/csrf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -75,6 +76,21 @@ app.post('/webhook/stripe', express.raw({ type: 'application/json' }), async (re
 
 // JSON parsing for other routes
 app.use(express.json());
+
+// CSRF protection (after session, before routes)
+// Exempt Stripe webhook, API key auth, and test mode from CSRF
+app.use((req, res, next) => {
+  // Skip CSRF for test environment, Stripe webhooks, and API key authentication
+  if (process.env.NODE_ENV === 'test' || req.path === '/webhook/stripe' || req.headers['x-api-key'] || req.query.api_key) {
+    return next();
+  }
+  csrfProtection(req, res, next);
+});
+
+// Provide CSRF token to frontend
+app.get('/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 // Routes
 app.use('/auth', authRouter);
@@ -165,7 +181,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start
+// Start server (only if not being imported for testing)
 async function start() {
   await initDB();
   setupStripe();
@@ -173,6 +189,12 @@ async function start() {
   app.listen(PORT, () => console.log(`✅ SaaS running on port ${PORT}`));
 }
 
-start();
+// Only start if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  start();
+} else {
+  // Initialize DB for tests but don't start server
+  initDB();
+}
 
-module.exports = app; // For testing
+module.exports = app;

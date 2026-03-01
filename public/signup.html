@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — SaaS Starter Kit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#e5e5e5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.container{max-width:420px;width:100%}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:32px}
+h1{font-size:28px;font-weight:800;margin-bottom:8px;text-align:center}
+.subtitle{text-align:center;color:#a3a3a3;font-size:14px;margin-bottom:24px}
+.subtitle a{color:#06b6d4;text-decoration:none}
+.subtitle a:hover{text-decoration:underline}
+.form-group{margin-bottom:16px}
+label{display:block;margin-bottom:6px;font-size:14px;font-weight:600}
+input{width:100%;padding:12px;background:#1a1a1a;border:1px solid #262626;border-radius:6px;color:#e5e5e5;font-size:14px}
+input:focus{outline:none;border-color:#06b6d4}
+.btn{width:100%;padding:14px;background:#06b6d4;color:#0a0a0a;border:none;border-radius:6px;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px}
+.btn:hover{background:#0891b2}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.alert{padding:12px;border-radius:6px;margin-bottom:16px;font-size:14px}
+.alert-error{background:#7f1d1d;border:1px solid #991b1b;color:#fca5a5}
+.alert-success{background:#14532d;border:1px solid #166534;color:#86efac}
+.password-hint{font-size:12px;color:#a3a3a3;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Create Account</h1>
+    <p class="subtitle">Already have an account? <a href="/login.html">Log in</a></p>
+
+    <div id="alert" style="display:none"></div>
+
+    <form id="signupForm">
+      <div class="form-group">
+        <label for="name">Name (optional)</label>
+        <input type="text" id="name" name="name" placeholder="John Doe">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="••••••••">
+        <p class="password-hint">Minimum 8 characters</p>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('signupForm');
+const alertBox = document.getElementById('alert');
+const submitBtn = document.getElementById('submitBtn');
+let csrfToken = null;
+
+// Fetch CSRF token on page load
+(async () => {
+  try {
+    const res = await fetch('/csrf-token');
+    const data = await res.json();
+    csrfToken = data.csrfToken;
+  } catch (err) {
+    console.error('Failed to fetch CSRF token:', err);
+  }
+})();
+
+function showAlert(message, isError = true) {
+  alertBox.textContent = message;
+  alertBox.className = isError ? 'alert alert-error' : 'alert alert-success';
+  alertBox.style.display = 'block';
+}
+
+function hideAlert() {
+  alertBox.style.display = 'none';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAlert();
+
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const name = document.getElementById('name').value.trim();
+
+  // Client-side validation
+  if (!email || !password) {
+    return showAlert('Email and password are required');
+  }
+
+  if (!email.includes('@')) {
+    return showAlert('Please enter a valid email address');
+  }
+
+  if (password.length < 8) {
+    return showAlert('Password must be at least 8 characters');
+  }
+
+  if (password !== confirmPassword) {
+    return showAlert('Passwords do not match');
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating account...';
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['CSRF-Token'] = csrfToken;
+
+    const res = await fetch('/auth/signup', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ email, password, name })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Signup failed');
+    }
+
+    showAlert('Account created! Redirecting to dashboard...', false);
+
+    setTimeout(() => {
+      window.location.href = '/dashboard';
+    }, 1500);
+
+  } catch (err) {
+    showAlert(err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create Account';
+  }
+});
+</script>
+</body>
+</html>
