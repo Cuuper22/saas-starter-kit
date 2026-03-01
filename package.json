@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node src/server.js",
     "start": "NODE_ENV=production node src/server.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage --forceExit"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -22,7 +22,7 @@
     "supertest": "^7.0.0"
   },
   "keywords": ["saas", "starter-kit", "boilerplate", "stripe", "express"],
-  "author": "Ben Cooper",
+  "author": "Cuuper22",
   "license": "MIT",
   "jest": {
     "testEnvironment": "node",

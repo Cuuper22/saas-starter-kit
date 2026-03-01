@@ -1,169 +1,74 @@
 # SaaS Starter Kit
 
-Production-ready Node.js SaaS boilerplate with Stripe subscriptions, authentication, email, and dashboard. Ship your SaaS in hours, not weeks.
+Node.js SaaS boilerplate with Stripe subscriptions, session auth, email, and a dashboard. SQLite backend — no external DB needed.
 
-## Features
+## What's In Here
 
-- **Stripe Payments**: Full subscription flow with checkout, webhooks, and customer portal
-- **Authentication**: Secure session-based auth with bcrypt + API key support
-- **Email System**: Transactional emails via SMTP (Gmail, Outlook, etc.)
-- **Dashboard**: Usage stats, API key management, billing
-- **Security**: Helmet.js headers, rate limiting, secure sessions
-- **Database**: SQLite with better-sqlite3 (easy deployment, no external DB)
-- **Tests**: Jest test suite with 90%+ coverage
+- **Auth**: Session-based with bcrypt (cost 12) + API key support + password reset flow
+- **Stripe**: Checkout sessions, subscription webhooks, customer portal
+- **Email**: Transactional emails via SMTP (welcome, password reset)
+- **Dashboard**: Usage stats, API key display, billing management
+- **Security**: Helmet headers, CSRF protection, rate limiting (60 req/min), input validation
+- **Database**: SQLite via better-sqlite3 (WAL mode, prepared statements)
 
 ## Quick Start
 
 ```bash
-# Clone and install
-git clone https://github.com/Cuuper22/saas-starter-kit.git
-cd saas-starter-kit
 npm install
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your keys
+# Required: generate a session secret
+export SESSION_SECRET=$(openssl rand -hex 32)
 
-# Run
+# Optional: Stripe and email config
+# export STRIPE_SECRET_KEY=sk_test_...
+# export SMTP_HOST=smtp.gmail.com
+
 npm run dev
+# → http://localhost:3000
 ```
 
-Visit http://localhost:3000
+Pages: `/signup`, `/login`, `/dashboard`, `/forgot-password`, `/reset-password`
 
-## Environment Variables
-
-Required:
-```
-SESSION_SECRET=<generate with: openssl rand -hex 32>
-```
-
-Optional (for full functionality):
-```
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_ID=price_...
-
-# Email (SMTP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-EMAIL_FROM=noreply@yourdomain.com
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /auth/signup` - Create account (email, password, name)
-- `POST /auth/login` - Login (email, password)
-- `POST /auth/logout` - Logout
-
-### Dashboard
-- `GET /dashboard` - Dashboard page (requires auth)
-- `GET /api/dashboard` - Dashboard data (JSON)
-
-### Payments
-- `POST /api/checkout` - Create Stripe checkout session
-- `POST /api/billing-portal` - Access Stripe customer portal
-- `POST /webhook/stripe` - Stripe webhook handler
-
-### Usage Tracking
-- `POST /api/track` - Track API usage (example endpoint)
-
-## API Authentication
-
-Two methods:
-
-1. **Session** (after login via web)
-2. **API Key** (from dashboard)
+## API
 
 ```bash
-# Using API key
-curl -H "X-API-Key: sk_your_key_here" http://localhost:3000/api/dashboard
+# Sign up
+curl -X POST http://localhost:3000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "mypassword", "name": "Test"}'
+
+# Use the returned API key
+curl -H "X-API-Key: sk_..." http://localhost:3000/api/dashboard
 ```
 
-## Testing
+### Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/auth/signup` | No | Create account |
+| POST | `/auth/login` | No | Login |
+| POST | `/auth/logout` | Session | Logout |
+| POST | `/auth/forgot-password` | No | Request reset token |
+| POST | `/auth/reset-password` | No | Reset with token |
+| GET | `/api/dashboard` | Yes | User data + usage stats |
+| POST | `/api/checkout` | Yes | Create Stripe checkout |
+| POST | `/api/billing-portal` | Yes | Stripe customer portal |
+| POST | `/api/track` | Yes | Track API usage |
+| POST | `/webhook/stripe` | Stripe sig | Webhook handler |
+
+Auth = session cookie or `X-API-Key` header.
+
+## Tests
 
 ```bash
 npm test
+# 12 tests — auth flow, Stripe integration, email, API endpoints
 ```
 
-Tests cover:
-- Auth flow (signup, login, logout)
-- Stripe integration (checkout, subscriptions)
-- Email sending (with mocked SMTP)
-- API endpoints and rate limiting
+## Stack
 
-## Deployment
-
-### Docker
-```bash
-docker build -t saas-app .
-docker run -p 3000:3000 --env-file .env saas-app
-```
-
-### PM2
-```bash
-npm install -g pm2
-pm2 start src/server.js --name saas
-pm2 save
-```
-
-### Stripe Webhooks
-Set up webhook endpoint: `https://yourdomain.com/webhook/stripe`
-
-Events to listen for:
-- `checkout.session.completed`
-- `customer.subscription.created`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
-
-## Database Schema
-
-```sql
-users (
-  id INTEGER PRIMARY KEY,
-  email TEXT UNIQUE,
-  password_hash TEXT,
-  name TEXT,
-  stripe_customer_id TEXT,
-  plan TEXT DEFAULT 'free',
-  api_key TEXT UNIQUE,
-  created_at DATETIME
-)
-
-usage (
-  id INTEGER PRIMARY KEY,
-  user_id INTEGER,
-  endpoint TEXT,
-  timestamp DATETIME
-)
-```
-
-## Security Best Practices
-
-- Session secret is ENV-based (fails if not set)
-- Passwords hashed with bcrypt (cost: 12)
-- Helmet.js security headers enabled
-- Rate limiting: 60 req/min per user
-- HTTPS cookies in production
-- SQL injection protected (prepared statements)
-
-## Tech Stack
-
-- **Runtime**: Node.js 18+
-- **Framework**: Express.js
-- **Database**: SQLite (better-sqlite3)
-- **Payments**: Stripe
-- **Email**: Nodemailer (SMTP)
-- **Security**: Helmet, bcrypt
-- **Tests**: Jest + Supertest
+Express.js, better-sqlite3, Stripe SDK, bcrypt, Helmet, Nodemailer, Jest + Supertest
 
 ## License
 
-MIT - See LICENSE file
-
-## Support
-
-Open an issue on GitHub or email support@yourdomain.com
+MIT

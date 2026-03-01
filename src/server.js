@@ -94,7 +94,7 @@ app.get('/csrf-token', (req, res) => {
 
 // Routes
 app.use('/auth', authRouter);
-app.use('/api', rateLimiter, requireAuth);
+app.use('/api', rateLimiter);
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
@@ -112,7 +112,7 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
   
-  const usageCount = db.prepare('SELECT COUNT(*) as total FROM usage WHERE user_id = ? AND timestamp > datetime("now", "-30 days")').get(userId);
+  const usageCount = db.prepare("SELECT COUNT(*) as total FROM usage WHERE user_id = ? AND timestamp > datetime('now', '-30 days')").get(userId);
   const recentUsage = db.prepare('SELECT endpoint, timestamp FROM usage WHERE user_id = ? ORDER BY timestamp DESC LIMIT 10').all(userId);
   
   res.json({
