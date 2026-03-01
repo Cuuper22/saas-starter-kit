@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SaaS Starter Kit</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#e5e5e5;padding:20px}
+.container{max-width:900px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid #262626}
+h1{font-size:32px;font-weight:800}
+.btn{display:inline-block;padding:10px 20px;background:#06b6d4;color:#0a0a0a;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px;border:none;cursor:pointer}
+.btn-outline{background:transparent;border:2px solid #06b6d4;color:#06b6d4}
+.btn-small{padding:6px 12px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:40px}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:24px}
+.card h3{margin-bottom:8px;color:#06b6d4;font-size:14px;text-transform:uppercase;letter-spacing:0.5px}
+.card .value{font-size:36px;font-weight:800;margin-bottom:4px}
+.card .label{color:#a3a3a3;font-size:13px}
+.section{margin-bottom:40px}
+.section h2{font-size:20px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;background:#141414;border:1px solid #262626;border-radius:12px;overflow:hidden}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #262626}
+th{background:#1a1a1a;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#06b6d4}
+tr:last-child td{border-bottom:none}
+.code{background:#1a1a1a;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:13px;display:inline-block;margin:8px 0}
+.alert{background:#0c4a6e;border-left:4px solid #06b6d4;padding:16px;border-radius:6px;margin-bottom:20px}
+.alert-warn{background:#713f12;border-left-color:#f59e0b}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Dashboard</h1>
+    <button class="btn btn-outline btn-small" onclick="logout()">Logout</button>
+  </header>
+  
+  <div id="loading" style="text-align:center;padding:40px;color:#666">Loading...</div>
+  
+  <div id="content" style="display:none">
+    <div class="alert" id="alert" style="display:none"></div>
+    
+    <div class="grid">
+      <div class="card">
+        <h3>Plan</h3>
+        <div class="value" id="plan">Free</div>
+        <div class="label">Current subscription</div>
+        <button class="btn btn-small" onclick="manageBilling()" style="margin-top:12px">Manage Billing</button>
+      </div>
+      <div class="card">
+        <h3>API Calls</h3>
+        <div class="value" id="apiCalls">0</div>
+        <div class="label">This month</div>
+      </div>
+      <div class="card">
+        <h3>Rate Limit</h3>
+        <div class="value" id="rateLimit">60</div>
+        <div class="label">Requests per minute</div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>Account</h2>
+      <div class="card">
+        <p><strong>Email:</strong> <span id="email">-</span></p>
+        <p style="margin-top:8px"><strong>Member Since:</strong> <span id="createdAt">-</span></p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>API Key</h2>
+      <div class="card">
+        <p style="margin-bottom:12px">Use this key for API authentication:</p>
+        <div class="code" id="apiKey">-</div>
+        <p style="color:#a3a3a3;font-size:13px;margin-top:12px">Add header: <code style="background:#1a1a1a;padding:2px 6px;border-radius:3px">X-API-Key: your-key</code></p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>Recent Activity</h2>
+      <table id="activityTable">
+        <thead><tr><th>Endpoint</th><th>Timestamp</th></tr></thead>
+        <tbody id="activityBody"><tr><td colspan="2" style="text-align:center;color:#666">No activity yet</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+async function loadDashboard() {
+  try {
+    const res = await fetch('/api/dashboard');
+    if (!res.ok) {
+      if (res.status === 401) return window.location.href = '/';
+      throw new Error('Failed to load dashboard');
+    }
+    const data = await res.json();
+    
+    // Update stats
+    document.getElementById('plan').textContent = data.plan || 'Free';
+    document.getElementById('apiCalls').textContent = data.usage?.total || 0;
+    document.getElementById('email').textContent = data.email;
+    document.getElementById('apiKey').textContent = data.apiKey;
+    document.getElementById('createdAt').textContent = new Date(data.createdAt).toLocaleDateString();
+    
+    // Show upgrade alert for free users
+    if (data.plan === 'free') {
+      const alert = document.getElementById('alert');
+      alert.className = 'alert alert-warn';
+      alert.textContent = 'You\'re on the Free plan. Upgrade for higher limits and priority support.';
+      alert.style.display = 'block';
+    }
+    
+    // Update activity
+    if (data.usage?.recent?.length) {
+      const tbody = document.getElementById('activityBody');
+      tbody.innerHTML = data.usage.recent.map(item => 
+        `<tr><td>${item.endpoint}</td><td>${new Date(item.timestamp).toLocaleString()}</td></tr>`
+      ).join('');
+    }
+    
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+  } catch (e) {
+    document.getElementById('loading').textContent = 'Error: ' + e.message;
+  }
+}
+
+async function logout() {
+  await fetch('/auth/logout', { method: 'POST' });
+  window.location.href = '/';
+}
+
+async function manageBilling() {
+  try {
+    const res = await fetch('/api/billing-portal', { method: 'POST' });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else alert('Billing portal not available');
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { getDB } = require('./db');
+const { sendWelcomeEmail } = require('./email');
 
 const authRouter = express.Router();
 
@@ -16,6 +17,10 @@ authRouter.post('/signup', async (req, res) => {
     const db = getDB();
     const result = db.prepare('INSERT INTO users (email, password_hash, name, api_key) VALUES (?, ?, ?, ?)').run(email, hash, name, apiKey);
     req.session.userId = result.lastInsertRowid;
+    
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail({ to: email, name }).catch(err => console.error('Email error:', err));
+    
     res.json({ success: true, apiKey });
   } catch (e) {
     if (e.message.includes('UNIQUE')) return res.status(409).json({ error: 'Email already exists' });
