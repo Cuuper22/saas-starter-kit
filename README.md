@@ -1,7 +1,3 @@
-## Why
-
-Every SaaS project starts with the same boilerplate: auth, billing, email, dashboard. This is that boilerplate, done once properly — session auth with bcrypt, Stripe webhooks, transactional email — so I never have to write it again.
-
 # SaaS Starter Kit
 
 Node.js SaaS boilerplate with Stripe subscriptions, session auth, email, and a dashboard. SQLite backend — no external DB needed.
